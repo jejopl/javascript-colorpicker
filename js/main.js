@@ -2,6 +2,12 @@ const color = {r:0, g:255, b:0}; // set up a start color
 const mainPickerPos = {x:100, y:100};
 let updateColor = false;
 
+
+
+addEventListener('mouseover', function(event) {
+
+});
+
 function rgbToHex(rgb) { 
     var hex = Number(rgb).toString(16);
     if (hex.length < 2) {
@@ -65,8 +71,7 @@ function layer1F() {
 
 function layer2F() {
 
-    const hex = document.getElementById('hex');
-    const rgb = document.getElementById('rgb');
+
 
     const layer1 = document.getElementById('layer1');
     const ctx1 = layer1.getContext('2d');
@@ -328,5 +333,27 @@ window.onload = function() {
     layer2F();
     layer1Small();
     layer2Small();
+    const hex = document.getElementById('hex');
+    const rgb = document.getElementById('rgb');
+    [hex,rgb].forEach(item => {
+        item.addEventListener('mouseover', function(event) {
+            this.style.cursor='pointer';
+        });
+        item.addEventListener('mouseout', function(event) {
+            this.style.cursor='default';
+        });
+        item.addEventListener('mousedown', function(event) {
+            item.className += " copied";
+            let temp = item.value; 
+            item.focus();
+            item.select();
+            document.execCommand('copy');
+            item.value ='Copied!';
+            setTimeout(() => {
+                item.className = 'colors';
+                item.value = temp;
+            },500);
+        });
+    })
 }
     
