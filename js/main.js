@@ -94,7 +94,7 @@ function layer2F() {
     function isInPath(x, y) { // check if mouse is on the picker (circle)
         x -= startPos.x;
         y -= startPos.y;
-        if((x > 0 && x < 16) && (y > 0 && y < 16)){
+        if((x > 0 && x < 16) && (y > 6 && y < 22)){
             return true;
         }
         return false;
