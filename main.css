@@ -1,0 +1,32 @@
+#layer1 {
+    border-radius: 10px;
+    position: absolute;
+    left: 50px;
+    top: 50px;
+}
+#layer2 {
+    border-radius: 10px;
+    position: absolute;
+    left: 25px;
+    top: 25px;
+}
+#result {
+    position: absolute;
+    left: 400px;
+    top: 50px;
+    width:100px;
+    height:100px;
+}
+
+#outer-layer1{
+    position: absolute;
+    top: 50px;
+    left: 320px;
+    border-radius: 5px;
+}
+
+#outer-layer2 {
+    position: absolute;
+    top: 45px;
+    left: 315px;
+}
