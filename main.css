@@ -30,3 +30,20 @@
     top: 45px;
     left: 315px;
 }
+
+#color-values {
+    position: absolute;
+    left: 375px;
+    top: 180px;
+    width:100px;
+    height:100px;
+}
+.colors {
+    padding: 5px 0 5px 0;
+    box-sizing: border-box;
+    border: none;
+    font-weight: 600;
+    background: #c0c0c0;
+    text-align: center;
+    margin:0;
+  }

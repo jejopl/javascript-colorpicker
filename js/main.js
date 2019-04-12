@@ -6,6 +6,39 @@ const outer_layer1_ctx = document.getElementById("outer-layer1").getContext("2d"
 const outer_layer2 = document.getElementById("outer-layer2")
 const outer_layer2_ctx = outer_layer2.getContext("2d")
 const result = document.getElementsByClassName('st0')
+const hex = document.getElementById('hex');
+const rgb = document.getElementById('rgb');
+
+function rgbaToRgb(r, g, b, a) {
+
+    let rR, rG, rB 
+
+    rR = ((1 - a) * 255) + (a * r)
+    rG = ((1 - a) * 255) + (a * g)
+    rB = ((1 - a) * 255) + (a * b)
+
+    rR = (rR < 255) ? Math.round(rR) : 255
+    rG = (rG < 255) ? Math.round(rG) : 255
+    rB = (rB < 255) ? Math.round(rB) : 255
+    return [rR, rG, rB]
+}
+
+function rgbToHex(rgb) { 
+    let hex = Number(rgb).toString(16);
+    if (hex.length < 2) {
+         hex = "0" + hex;
+    }
+    return hex;
+};
+
+function fullColorHex(r,g,b) {   
+    let red = rgbToHex(r);
+    let green = rgbToHex(g);
+    let blue = rgbToHex(b);
+    return ('#' + red+green+blue).toUpperCase();
+};
+
+
 
 const startPos = {
     x: 125,
@@ -49,18 +82,6 @@ outer_layer2_ctx.stroke();
 //outer_layer2_ctx.fill();
 
 
-let currentColor = layer1_ctx.getImageData(mainSwitchPos.x, mainSwitchPos.y, 1, 1).data;
-let alpha = (currentColor[3] / 255).toFixed(2)
-
-
-let sideColor = outer_layer1_ctx.getImageData(sideSwitchPos.x, sideSwitchPos.y, 1, 1).data;
-let sideAlpha = (sideColor[3] / 255).toFixed(2)
-
-result[0].style = `fill: rgb(${sideColor[0]}, ${sideColor[1]}, ${sideColor[2]}, ${sideAlpha})`
-result[1].style = `fill: rgb(${sideColor[0]}, ${sideColor[1]}, ${sideColor[2]}, ${sideAlpha})`
-result[2].style = `fill: rgb(${sideColor[0]}, ${sideColor[1]}, ${sideColor[2]}, ${sideAlpha})`
-
-
 // layer1 (color)
 let layer1_gr = layer1_ctx.createLinearGradient(0, 0, 150, 100);
 layer1_gr.addColorStop(1, `#ff0000`);
@@ -70,12 +91,29 @@ layer1_ctx.fillRect(0, 0, layer1_ctx.canvas.width, layer1_ctx.canvas.height);
 
 // layer1 (black n white)
 let layer1_gr2 = layer1_ctx.createLinearGradient(0, 0, 300, 200);
-layer1_gr2.addColorStop(1, "rgb(0,0,0,1)");
-layer1_gr2.addColorStop(.6, "rgb(0,0,0,0.1)");
-layer1_gr2.addColorStop(.35, "rgb(0,0,0,0)");
+layer1_gr2.addColorStop(1, "rgba(0,0,0,1)");
+layer1_gr2.addColorStop(.6, "rgba(0,0,0,0.1)");
+layer1_gr2.addColorStop(.35, "rgba(0,0,0,0)");
 layer1_ctx.fillStyle = layer1_gr2;
 layer1_ctx.fillRect(0, 0, layer1_ctx.canvas.width, layer1_ctx.canvas.height);
 
+let currentColor = layer1_ctx.getImageData(mainSwitchPos.x, mainSwitchPos.y, 1, 1).data;
+let alpha = (currentColor[3] / 255).toFixed(2)
+
+currentColor = rgbaToRgb(currentColor[0], currentColor[1], currentColor[2], alpha)
+
+let sideColor = outer_layer1_ctx.getImageData(sideSwitchPos.x, sideSwitchPos.y, 1, 1).data;
+let sideAlpha = (sideColor[3] / 255).toFixed(2)
+
+sideColor = rgbaToRgb(sideColor[0], sideColor[1], sideColor[2], sideAlpha)
+rgb.value = `rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`
+
+result[0].style = `fill: rgb(${sideColor[0]}, ${sideColor[1]}, ${sideColor[2]})`
+result[1].style = `fill: rgb(${sideColor[0]}, ${sideColor[1]}, ${sideColor[2]})`
+result[2].style = `fill: rgb(${sideColor[0]}, ${sideColor[1]}, ${sideColor[2]})`
+
+
+hex.value = fullColorHex(currentColor[0], currentColor[1], currentColor[2])
 
 // check if mouse is on switch
 function isMouseOnSwitch(layerX, layerY, switchPosX, switchPosY, switchSizeX, switchSizeY) {
@@ -85,14 +123,12 @@ function isMouseOnSwitch(layerX, layerY, switchPosX, switchPosY, switchSizeX, sw
 }
 
 // draw function for picker (circle)
-function draw(lastColor = currentColor, a = alpha) {
-    alpha = (lastColor[3] / 255).toFixed(2)
+function draw() {
     layer2_ctx.beginPath();
     layer2_ctx.arc(150, 150, 8, 0, 2 * Math.PI);
-    layer2_ctx.fillStyle = `rgba(${lastColor[0]},${lastColor[1]},${lastColor[2]}, ${a})`
+    layer2_ctx.fillStyle = `rgb(${currentColor[0]},${currentColor[1]},${currentColor[2]})`
     layer2_ctx.fill();
-    if (alpha < 0.15) layer2_ctx.strokeStyle = '#000';
-    else if (alpha < 0.35) layer2_ctx.strokeStyle = '#555'
+    if (currentColor[1] > 180) layer2_ctx.strokeStyle = '#000';
     else layer2_ctx.strokeStyle = '#fff';
     layer2_ctx.stroke();
 }
@@ -136,13 +172,17 @@ layer2.addEventListener('mousemove', e => {
         mainSwitchPos.y = startPos.y;
         layer2_ctx.translate(dragEnd.x - dragStart.x, dragEnd.y - dragStart.y);
         currentColor = layer1_ctx.getImageData(mainSwitchPos.x, mainSwitchPos.y, 1, 1).data;
+        alpha = (currentColor[3] / 255).toFixed(2)
+        currentColor = rgbaToRgb(currentColor[0], currentColor[1], currentColor[2], alpha)
         clear();
         draw();
         dragStart = dragEnd;
 
-        result[0].style = `fill: rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]}, ${alpha})`
-        result[1].style = `fill: rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]}, ${alpha})`
-        result[2].style = `fill: rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]}, ${alpha})`
+        result[0].style = `fill: rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`
+        result[1].style = `fill: rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`
+        result[2].style = `fill: rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`
+        hex.value = fullColorHex(currentColor[0], currentColor[1], currentColor[2])
+        rgb.value = `rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`
     }
 });
 
@@ -159,14 +199,18 @@ layer2.addEventListener('mouseup', e => {
     mainSwitchPos.y = startPos.y;
     layer2_ctx.translate(dragEnd.x - dragStart.x, dragEnd.y - dragStart.y);
     currentColor = layer1_ctx.getImageData(mainSwitchPos.x, mainSwitchPos.y, 1, 1).data;
+    alpha = (currentColor[3] / 255).toFixed(2)
+    currentColor = rgbaToRgb(currentColor[0], currentColor[1], currentColor[2], alpha)
     clear();
     draw();
     dragStart = dragEnd;
     layer2.style.cursor = 'pointer';
 
-    result[0].style = `fill: rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]}, ${alpha})`
-    result[1].style = `fill: rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]}, ${alpha})`
-    result[2].style = `fill: rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]}, ${alpha})`
+    result[0].style = `fill: rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`
+    result[1].style = `fill: rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`
+    result[2].style = `fill: rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`
+    hex.value = fullColorHex(currentColor[0], currentColor[1], currentColor[2])
+    rgb.value = `rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`
 
 });
 
@@ -183,12 +227,9 @@ outer_layer2.addEventListener('mousemove', e => {
             y: e.layerY
         };
 
-
         sideSwitchPos.y += (sideDragEnd.y - sideDragStart.y);
-        
+
         outer_layer2_ctx.translate(0, sideDragEnd.y - sideDragStart.y);
-
-
         outer_layer2_ctx.clearRect(0, 0, outer_layer2.width, outer_layer2.height);
         outer_layer2_ctx.clearRect(0, 0, outer_layer2.width, -outer_layer2.height);
         
@@ -198,8 +239,6 @@ outer_layer2.addEventListener('mousemove', e => {
 
         sideColor = outer_layer1_ctx.getImageData(sideSwitchPos.x, sideSwitchPos.y, 1, 1).data;
         sideDragStart = sideDragEnd;
-
-
         layer1_ctx.clearRect(0, 0, layer1.width, layer1.height);
 
         layer1_gr = layer1_ctx.createLinearGradient(0, 0, 150, 100);
@@ -209,23 +248,26 @@ outer_layer2.addEventListener('mousemove', e => {
         layer1_ctx.fillRect(0, 0, layer1_ctx.canvas.width, layer1_ctx.canvas.height);
 
         layer1_gr2 = layer1_ctx.createLinearGradient(0, 0, 300, 200);
-        layer1_gr2.addColorStop(1, "rgb(0,0,0,1)");
-        layer1_gr2.addColorStop(.6, "rgb(0,0,0,0.1)");
-        layer1_gr2.addColorStop(.35, "rgb(0,0,0,0)");
+        layer1_gr2.addColorStop(1, "rgba(0,0,0,1)");
+        layer1_gr2.addColorStop(.6, "rgba(0,0,0,0.1)");
+        layer1_gr2.addColorStop(.35, "rgba(0,0,0,0)");
         layer1_ctx.fillStyle = layer1_gr2;
         layer1_ctx.fillRect(0, 0, layer1_ctx.canvas.width, layer1_ctx.canvas.height);
 
         currentColor = layer1_ctx.getImageData(mainSwitchPos.x, mainSwitchPos.y, 1, 1).data;
         alpha = (currentColor[3] / 255).toFixed(2)
-        result[0].style = `fill: rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]}, ${alpha})`
-        result[1].style = `fill: rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]}, ${alpha})`
-        result[2].style = `fill: rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]}, ${alpha})`
+
+        currentColor = rgbaToRgb(currentColor[0], currentColor[1], currentColor[2], alpha)
+
+        result[0].style = `fill: rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`
+        result[1].style = `fill: rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`
+        result[2].style = `fill: rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`
         clear();
-        draw(currentColor, alpha);
+        draw();
+        hex.value = fullColorHex(currentColor[0], currentColor[1], currentColor[2])
+        rgb.value = `rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`
+
     }
-
-
-
 })
 
 outer_layer2.addEventListener('mousedown', e => {
@@ -245,3 +287,25 @@ outer_layer2.addEventListener('mouseup', e => {
         sideDrag = false;
 
 });
+
+
+[hex,rgb].forEach(item => {
+    item.addEventListener('mouseover', e => {
+        item.style.cursor='pointer';
+    });
+    item.addEventListener('mouseout', e => {
+        item.style.cursor='default';
+    });
+    item.addEventListener('mousedown', e => {
+        item.className += " copied";
+        let temp = item.value; 
+        item.focus();
+        item.select();
+        document.execCommand('copy');
+        item.value ='Copied!';
+        setTimeout(() => {
+            item.className = 'colors';
+            item.value = temp;
+        },500);
+    });
+})
