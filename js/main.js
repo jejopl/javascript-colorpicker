@@ -50,20 +50,21 @@ const mainSwitchPos = {
 };
 
 let dragStart = {
-    x: 156,
-    y: 156
+    x: 140,
+    y: 140
 };
 
 const sideSwitchPos = {
     x: 3,
-    y: 0
+    y: 2
 }
 
-let drag, sideDrag, dragEnd
+let drag, sideDrag, dragEnd, sideY
 
 
 // side layer color
-const someColors = ['red', 'orange', 'yellow', 'chartreuse', 'green', 'aqua', 'blue', 'violet', 'mistyrose'];
+//const someColors = ['red', 'orange', 'yellow', 'chartreuse', 'green', 'aqua', 'blue', 'violet', 'mistyrose'];
+const someColors = ['#FF0000', '#FFFF00', '#00FF00', '#00FFFF', '#0000FF', '#FF00FF',]
 let outer_layer1_gr = outer_layer1_ctx.createLinearGradient(0, 0, 0, 250);
 for (i = 0; i < someColors.length; i++) {
     let color = someColors[i]
@@ -77,23 +78,26 @@ outer_layer1_ctx.fillRect(0, 0, outer_layer1_ctx.canvas.width, outer_layer1_ctx.
 outer_layer2_ctx.fillStyle = "#000"
 outer_layer2_ctx.strokeStyle = '#000';
 outer_layer2_ctx.lineWidth = 2
-outer_layer2_ctx.rect(5, 2, 30, 10)
+outer_layer2_ctx.rect(5, 1, 30, 10)
 outer_layer2_ctx.stroke();
 //outer_layer2_ctx.fill();
 
 
 // layer1 (color)
-let layer1_gr = layer1_ctx.createLinearGradient(0, 0, 150, 100);
+let layer1_gr = layer1_ctx.createLinearGradient(0, 0, 250, 0);
 layer1_gr.addColorStop(1, `#ff0000`);
+layer1_gr.addColorStop(.95, `#ff0000`);
 layer1_gr.addColorStop(0, `#fff`);
 layer1_ctx.fillStyle = layer1_gr;
 layer1_ctx.fillRect(0, 0, layer1_ctx.canvas.width, layer1_ctx.canvas.height);
 
 // layer1 (black n white)
-let layer1_gr2 = layer1_ctx.createLinearGradient(0, 0, 300, 200);
+let layer1_gr2 = layer1_ctx.createLinearGradient(0, 0, 0, 250);
 layer1_gr2.addColorStop(1, "rgba(0,0,0,1)");
-layer1_gr2.addColorStop(.6, "rgba(0,0,0,0.1)");
-layer1_gr2.addColorStop(.35, "rgba(0,0,0,0)");
+layer1_gr2.addColorStop(.95, "rgba(0,0,0,1)");
+layer1_gr2.addColorStop(.5, "rgba(0,0,0,0.2)");
+layer1_gr2.addColorStop(.4, "rgba(0,0,0,0.1)");
+layer1_gr2.addColorStop(.1, "rgba(0,0,0,0)");
 layer1_ctx.fillStyle = layer1_gr2;
 layer1_ctx.fillRect(0, 0, layer1_ctx.canvas.width, layer1_ctx.canvas.height);
 
@@ -107,13 +111,11 @@ let sideAlpha = (sideColor[3] / 255).toFixed(2)
 
 sideColor = rgbaToRgb(sideColor[0], sideColor[1], sideColor[2], sideAlpha)
 rgb.value = `rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`
+hex.value = fullColorHex(currentColor[0], currentColor[1], currentColor[2])
 
 result[0].style = `fill: rgb(${sideColor[0]}, ${sideColor[1]}, ${sideColor[2]})`
 result[1].style = `fill: rgb(${sideColor[0]}, ${sideColor[1]}, ${sideColor[2]})`
 result[2].style = `fill: rgb(${sideColor[0]}, ${sideColor[1]}, ${sideColor[2]})`
-
-
-hex.value = fullColorHex(currentColor[0], currentColor[1], currentColor[2])
 
 // check if mouse is on switch
 function isMouseOnSwitch(layerX, layerY, switchPosX, switchPosY, switchSizeX, switchSizeY) {
@@ -125,7 +127,7 @@ function isMouseOnSwitch(layerX, layerY, switchPosX, switchPosY, switchSizeX, sw
 // draw function for picker (circle)
 function draw() {
     layer2_ctx.beginPath();
-    layer2_ctx.arc(150, 150, 8, 0, 2 * Math.PI);
+    layer2_ctx.arc(140, 140, 8, 0, 2 * Math.PI);
     layer2_ctx.fillStyle = `rgb(${currentColor[0]},${currentColor[1]},${currentColor[2]})`
     layer2_ctx.fill();
     if (currentColor[1] > 180) layer2_ctx.strokeStyle = '#000';
@@ -143,10 +145,10 @@ function clear() {
 draw()
 
 layer2.addEventListener('mousedown', e => {
-    if (isMouseOnSwitch(e.layerX, e.layerY, mainSwitchPos.x + 15, mainSwitchPos.y + 15, 18, 18)) {
+    if (isMouseOnSwitch(e.layerX, e.layerY, mainSwitchPos.x + 5, mainSwitchPos.y + 5, 18, 18)) {
         dragStart = {
-            x: e.pageX - layer2.offsetLeft,
-            y: e.pageY - layer2.offsetTop
+            x: e.layerX,
+            y: e.layerY
         }
 
         drag = true;
@@ -156,21 +158,24 @@ layer2.addEventListener('mousedown', e => {
 
 layer2.addEventListener('mousemove', e => {
 
-    if (isMouseOnSwitch(e.layerX, e.layerY, mainSwitchPos.x + 15, mainSwitchPos.y + 15, 18, 18)) {
+    if (isMouseOnSwitch(e.layerX, e.layerY, mainSwitchPos.x +5, mainSwitchPos.y + 5, 18, 18)) {
         layer2.style.cursor = 'pointer'
     } else layer2.style.cursor = 'default'
 
     if (drag) {
         dragEnd = {
-            x: e.pageX - layer2.offsetLeft,
-            y: e.pageY - layer2.offsetTop
+            x: e.layerX,
+            y: e.layerY
         };
 
-        startPos.x += (dragEnd.x - dragStart.x);
-        startPos.y += (dragEnd.y - dragStart.y);
+        mainY = ((mainSwitchPos.y < 2 && dragEnd.y - dragStart.y < 0) || (mainSwitchPos.y > 248 && dragEnd.y - dragStart.y > 0)) ? 0 : dragEnd.y - dragStart.y
+        mainX = ((mainSwitchPos.x < 2 && dragEnd.x - dragStart.x < 0) || (mainSwitchPos.x > 248 && dragEnd.x - dragStart.x > 0)) ? 0 : dragEnd.x - dragStart.x
+
+        startPos.x += mainX
+        startPos.y += mainY
         mainSwitchPos.x = startPos.x;
         mainSwitchPos.y = startPos.y;
-        layer2_ctx.translate(dragEnd.x - dragStart.x, dragEnd.y - dragStart.y);
+        layer2_ctx.translate(mainX, mainY);
         currentColor = layer1_ctx.getImageData(mainSwitchPos.x, mainSwitchPos.y, 1, 1).data;
         alpha = (currentColor[3] / 255).toFixed(2)
         currentColor = rgbaToRgb(currentColor[0], currentColor[1], currentColor[2], alpha)
@@ -189,15 +194,21 @@ layer2.addEventListener('mousemove', e => {
 layer2.addEventListener('mouseup', e => {
     drag = false;
     dragEnd = {
-        x: e.pageX - layer2.offsetLeft,
-        y: e.pageY - layer2.offsetTop
+        x: e.layerX,
+        y: e.layerY
     }
 
-    startPos.x += (dragEnd.x - dragStart.x);
-    startPos.y += (dragEnd.y - dragStart.y);
+    mainY = ((mainSwitchPos.y < 2 && dragEnd.y - dragStart.y < 0) || (mainSwitchPos.y > 248 && dragEnd.y - dragStart.y > 0)) ? 0 : dragEnd.y - dragStart.y
+    mainX = ((mainSwitchPos.x < 2 && dragEnd.x - dragStart.x < 0) || (mainSwitchPos.x > 248 && dragEnd.x - dragStart.x > 0)) ? 0 : dragEnd.x - dragStart.x
+
+    startPos.x += mainX
+    startPos.y += mainY
+
+    // startPos.x += (dragEnd.x - dragStart.x);
+    // startPos.y += (dragEnd.y - dragStart.y);
     mainSwitchPos.x = startPos.x;
     mainSwitchPos.y = startPos.y;
-    layer2_ctx.translate(dragEnd.x - dragStart.x, dragEnd.y - dragStart.y);
+    layer2_ctx.translate(mainX, mainY);
     currentColor = layer1_ctx.getImageData(mainSwitchPos.x, mainSwitchPos.y, 1, 1).data;
     alpha = (currentColor[3] / 255).toFixed(2)
     currentColor = rgbaToRgb(currentColor[0], currentColor[1], currentColor[2], alpha)
@@ -220,6 +231,7 @@ outer_layer2.addEventListener('mousemove', e => {
     if (isMouseOnSwitch(e.layerX, e.layerY, sideSwitchPos.x, sideSwitchPos.y, 34, 14)) outer_layer2.style.cursor = 'pointer'
     else outer_layer2.style.cursor = 'default'
     
+    
 
     if (sideDrag) {
         sideDragEnd = {
@@ -227,9 +239,11 @@ outer_layer2.addEventListener('mousemove', e => {
             y: e.layerY
         };
 
-        sideSwitchPos.y += (sideDragEnd.y - sideDragStart.y);
+        // set translate to 0 if switch is on max top or max bottom (block switch to move out of range)
+        sideY = ((sideSwitchPos.y < 2 && sideDragEnd.y - sideDragStart.y < 0) || (sideSwitchPos.y > 248 && sideDragEnd.y - sideDragStart.y > 0)) ? 0 : sideDragEnd.y - sideDragStart.y
+        sideSwitchPos.y += sideY;
 
-        outer_layer2_ctx.translate(0, sideDragEnd.y - sideDragStart.y);
+        outer_layer2_ctx.translate(0, sideY);
         outer_layer2_ctx.clearRect(0, 0, outer_layer2.width, outer_layer2.height);
         outer_layer2_ctx.clearRect(0, 0, outer_layer2.width, -outer_layer2.height);
         
@@ -241,16 +255,19 @@ outer_layer2.addEventListener('mousemove', e => {
         sideDragStart = sideDragEnd;
         layer1_ctx.clearRect(0, 0, layer1.width, layer1.height);
 
-        layer1_gr = layer1_ctx.createLinearGradient(0, 0, 150, 100);
-        layer1_gr.addColorStop(.8, `rgba(${sideColor[0]},${sideColor[1]},${sideColor[2]}, ${sideAlpha})`);
+        layer1_gr = layer1_ctx.createLinearGradient(0, 0, 250, 0);
+        layer1_gr.addColorStop(1, `rgba(${sideColor[0]},${sideColor[1]},${sideColor[2]}, ${sideAlpha})`);
+        layer1_gr.addColorStop(.95, `rgba(${sideColor[0]},${sideColor[1]},${sideColor[2]}, ${sideAlpha})`);
         layer1_gr.addColorStop(0, `rgba(${sideColor[0]},${sideColor[1]},${sideColor[2]}, 0)`);
         layer1_ctx.fillStyle = layer1_gr;
         layer1_ctx.fillRect(0, 0, layer1_ctx.canvas.width, layer1_ctx.canvas.height);
 
-        layer1_gr2 = layer1_ctx.createLinearGradient(0, 0, 300, 200);
+        layer1_gr2 = layer1_ctx.createLinearGradient(0, 0, 0, 250);
         layer1_gr2.addColorStop(1, "rgba(0,0,0,1)");
-        layer1_gr2.addColorStop(.6, "rgba(0,0,0,0.1)");
-        layer1_gr2.addColorStop(.35, "rgba(0,0,0,0)");
+        layer1_gr2.addColorStop(.95, "rgba(0,0,0,1)");
+        layer1_gr2.addColorStop(.5, "rgba(0,0,0,0.2)");
+        layer1_gr2.addColorStop(.4, "rgba(0,0,0,0.1)");
+        layer1_gr2.addColorStop(.1, "rgba(0,0,0,0)");
         layer1_ctx.fillStyle = layer1_gr2;
         layer1_ctx.fillRect(0, 0, layer1_ctx.canvas.width, layer1_ctx.canvas.height);
 
