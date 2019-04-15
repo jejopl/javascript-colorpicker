@@ -1,43 +1,42 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Color Picker</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="./js/main.js"></script>
-    <style>
-      .colors {
-      padding: 5px 0 5px 0;
-      box-sizing: border-box;
-      border: none;
-      font-weight: 600;
-      background: #c0c0c0;
-      text-align: center;
-      margin:0;
-    }
-    .copied {
-      background: #50cc64 !important;
-    }
-</style>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Color Picker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" type="text/css" media="screen" href="main.css">
+
 </head>
+
 <body>
-    <div style="position: relative;">
-        <canvas id="layer1" width="255" height="255" 
-          style="position: absolute; left: 0; top: 0; z-index: 0;"></canvas>
-        <canvas id="layer2" width="255" height="255" 
-          style="position: absolute; left: 0; top: 0; z-index: 1;"></canvas>
-       </div>
-       <p style="margin-left: 325px;margin-bottom: 10px;font-weight: 600;">Preview: </p>
-       <canvas id="result" style='margin-left: 280px; margin-bottom:5px; margin-top: 0px;' width="150px" height="150px"></canvas>
-       <div style='margin-left: 280px; width:150px !important;'><input class="colors" style="width:150px !important;" type="text" id="hex" readonly="readonly"/></div>
-       <div style='margin-left: 280px; width:150px !important;'><input class="colors" style="width:150px !important;" type="text" id="rgb" readonly="readonly"/></div>
-  
-       <div style="position: relative; margin-top: 30px;">
-        <canvas id="layer1-small" width="306" height="20" 
-          style="position: absolute; left: 0; top: 0; z-index: 0; margin-top:3px;"></canvas>
-        <canvas id="layer2-small" width="306" height="26" 
-          style="position: absolute; left: 0; top: 0; z-index: 1; border: 0;"></canvas>
-       </div>
+  <div style="position: relative;">
+    <canvas id="layer1" width="250" height="250" style="z-index: 1;"></canvas>
+    <canvas id="layer2" width="280" height="280" style="z-index: 2;"></canvas>
+    <canvas id="outer-layer1" width="30" height="250" style="z-index: 3;"></canvas>
+    <canvas id="outer-layer2" width="40" height="260" style="z-index: 4;"></canvas>
+    <div id="result">
+      <?xml version="1.0" encoding="utf-8"?>
+      <!-- Generator: Adobe Illustrator 22.1.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+      <svg version="1.1" id="logo" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+         viewBox="0 0 100 100" xml:space="preserve">
+      <title>presearch-logo</title>
+      <path class="st0" d="M35.3,62h9.7c2.8,0,5.5-0.6,8-1.8c2.4-1.2,4.5-2.8,6.3-4.8c1.7-2.1,3.1-4.4,4-7c1-2.6,1.4-5.3,1.4-8.1
+        c0-2.7-0.5-5.3-1.5-7.8c-1-2.5-2.4-4.8-4.2-6.8c-1.8-2-4-3.7-6.4-4.9c-2.5-1.3-5.2-1.9-8-1.9H19V81h16.3V62z M35.3,33.9h8.3
+        c1.1,0.1,2.2,0.6,3,1.5c1,1,1.6,2.6,1.6,5.3c0,2.6-0.6,4.2-1.4,5c-0.7,0.9-1.7,1.4-2.8,1.4h-8.7V33.9z"/>
+      <path class="st0" d="M0,5.7v88.5c0,3.2,2.6,5.7,5.7,5.7h0h88.5c3.2,0,5.7-2.6,5.8-5.7V5.7c0-3.2-2.6-5.7-5.8-5.7H5.7
+        C2.6,0,0,2.6,0,5.7z M82.5,88.2H17.4c-3.2,0-5.7-2.6-5.8-5.7V17.4c0-3.2,2.6-5.7,5.8-5.7h65.1c3.2,0,5.8,2.5,5.8,5.7c0,0,0,0,0,0.1
+        v65.1C88.3,85.7,85.7,88.2,82.5,88.2C82.5,88.2,82.5,88.2,82.5,88.2z"/>
+      <rect x="42.7" y="69.3" class="st0" width="38.3" height="11.8"/>
+      </svg>
+    </div>
+    <div id="color-values">
+      <input class="colors" style="width:150px !important;" type="text" id="hex" readonly="readonly"/>
+      <input class="colors" style="width:150px !important;" type="text" id="rgb" readonly="readonly"/>
+    </div>
+  </div>
+  <script src="js/main.js"></script>
 </body>
+
 </html>

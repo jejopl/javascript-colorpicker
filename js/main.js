@@ -1,15 +1,27 @@
-const color = {r:0, g:255, b:0}; // set up a start color
-const mainPickerPos = {x:100, y:100};
-let updateColor = false;
+const layer1 = document.getElementById("layer1")
+const layer1_ctx = layer1.getContext("2d")
+const layer2 = document.getElementById("layer2")
+const layer2_ctx = layer2.getContext('2d')
+const outer_layer1_ctx = document.getElementById("outer-layer1").getContext("2d")
+const outer_layer2 = document.getElementById("outer-layer2")
+const outer_layer2_ctx = outer_layer2.getContext("2d")
+const result = document.getElementsByClassName('st0')
+const hex = document.getElementById('hex');
+const rgb = document.getElementById('rgb');
 
-
-
-addEventListener('mouseover', function(event) {
-
-});
+function rgbaToRgb(r, g, b, a) {
+    let rR, rG, rB 
+    rR = ((1 - a) * 255) + (a * r)
+    rG = ((1 - a) * 255) + (a * g)
+    rB = ((1 - a) * 255) + (a * b)
+    rR = (rR < 255) ? Math.round(rR) : 255
+    rG = (rG < 255) ? Math.round(rG) : 255
+    rB = (rB < 255) ? Math.round(rB) : 255
+    return [rR, rG, rB]
+}
 
 function rgbToHex(rgb) { 
-    var hex = Number(rgb).toString(16);
+    let hex = Number(rgb).toString(16);
     if (hex.length < 2) {
          hex = "0" + hex;
     }
@@ -17,343 +29,281 @@ function rgbToHex(rgb) {
 };
 
 function fullColorHex(r,g,b) {   
-    var red = rgbToHex(r);
-    var green = rgbToHex(g);
-    var blue = rgbToHex(b);
+    let red = rgbToHex(r);
+    let green = rgbToHex(g);
+    let blue = rgbToHex(b);
     return ('#' + red+green+blue).toUpperCase();
 };
 
-function layer1F() {
-    const layer1 = document.getElementById('layer1');
-    const ctx1 = layer1.getContext('2d');
+const startPos = {
+    x: 125,
+    y: 125
+};
+const mainSwitchPos = {
+    x: 125,
+    y: 125
+};
 
-    let grd =  ctx1.createLinearGradient(0, 0, 0, 255);
+let dragStart = {
+    x: 140,
+    y: 140
+};
 
-    for(let x = 0; x<255; ++x){ // fill canvas with gradient
-
-
-        let r = 255 - color.r;
-        let g = 255 - color.g;
-        let b = 255 - color.b;
-
-        let add = {r:0, g:0, b:0};
-
-        if(r > 0) {
-            add.r = 1
-        } else {
-            add.r = 0
-        }
-
-        if(g > 0) {
-            add.g = 1
-        } else {
-            add.g = 0
-        }
-
-        if(b > 0) {
-            add.b = 1
-        } else {
-            add.b = 0
-        }
-
-        color.r += add.r;
-        color.g += add.g;
-        color.b += add.b;
-        grd.addColorStop(0, `rgb(${color.r}, ${color.g}, ${color.b}`);
-        grd.addColorStop(1, "black");
-
-        ctx1.fillStyle = grd;
-        ctx1.fillRect(x,0,1,255);
-
-
-    }
+const sideSwitchPos = {
+    x: 3,
+    y: 2
 }
 
-function layer2F() {
+let drag, sideDrag, dragEnd, sideY
 
+// draw side layer gradient
+const someColors = ['#FF0000', '#FFFF00', '#00FF00', '#00FFFF', '#0000FF', '#FF00FF',]
+let outer_layer1_gr = outer_layer1_ctx.createLinearGradient(0, 0, 0, 250);
+for (i = 0; i < someColors.length; i++) {
+    let color = someColors[i]
+    let part = 1 / (someColors.length - 1)
+    outer_layer1_gr.addColorStop(part * i, color);
+}
+outer_layer1_ctx.fillStyle = outer_layer1_gr;
+outer_layer1_ctx.fillRect(0, 0, outer_layer1_ctx.canvas.width, outer_layer1_ctx.canvas.height);
 
+// side layer switch
+outer_layer2_ctx.fillStyle = "#000"
+outer_layer2_ctx.strokeStyle = '#000';
+outer_layer2_ctx.lineWidth = 2
+outer_layer2_ctx.rect(5, 1, 30, 10)
+outer_layer2_ctx.stroke();
 
-    const layer1 = document.getElementById('layer1');
-    const ctx1 = layer1.getContext('2d');
+// layer1 (color)
+function drawColorLayer(color = `#ff0000`) {
+    let layer1_gr = layer1_ctx.createLinearGradient(0, 0, 250, 0);
+    layer1_gr.addColorStop(1, color);
+    layer1_gr.addColorStop(.95, color);
+    layer1_gr.addColorStop(0, `#fff`);
+    layer1_ctx.fillStyle = layer1_gr;
+    layer1_ctx.fillRect(0, 0, layer1_ctx.canvas.width, layer1_ctx.canvas.height);
+}
 
-    const result = document.getElementById('result');
-    const resultContext = result.getContext('2d');
+// layer1 (black n white)
+function drawBlackNWhiteLayer() {
+    let layer1_gr2 = layer1_ctx.createLinearGradient(0, 0, 0, 250);
+    layer1_gr2.addColorStop(1, "rgba(0,0,0,1)");
+    layer1_gr2.addColorStop(.95, "rgba(0,0,0,1)");
+    layer1_gr2.addColorStop(.5, "rgba(0,0,0,0.2)");
+    layer1_gr2.addColorStop(.4, "rgba(0,0,0,0.1)");
+    layer1_gr2.addColorStop(.1, "rgba(0,0,0,0)");
+    layer1_ctx.fillStyle = layer1_gr2;
+    layer1_ctx.fillRect(0, 0, layer1_ctx.canvas.width, layer1_ctx.canvas.height);
+}
 
-    const layer2 = document.getElementById('layer2');
-    const ctx2 = layer2.getContext('2d');
+// draw bg layers (color, black and white gradient)
+drawColorLayer()
+drawBlackNWhiteLayer()
 
-    const startPos = {x:100, y:100}; // picker (circle) starting pos
+// set current color on main and side layers
+let currentColor = layer1_ctx.getImageData(mainSwitchPos.x, mainSwitchPos.y, 1, 1).data;
+let alpha = (currentColor[3] / 255).toFixed(2)
+currentColor = rgbaToRgb(currentColor[0], currentColor[1], currentColor[2], alpha)
+let sideColor = outer_layer1_ctx.getImageData(sideSwitchPos.x, sideSwitchPos.y, 1, 1).data;
+let sideAlpha = (sideColor[3] / 255).toFixed(2)
+sideColor = rgbaToRgb(sideColor[0], sideColor[1], sideColor[2], sideAlpha)
 
-    // current color values and preview
-    let currentColor = ctx1.getImageData(mainPickerPos.x, mainPickerPos.y, 1, 1);
-    resultContext.fillStyle = `rgb(${currentColor.data[0]}, ${currentColor.data[1]}, ${currentColor.data[2]})`;
-    resultContext.fillRect(0,0, result.width, result.height);
-    hex.value = `${fullColorHex(currentColor.data[0], currentColor.data[1], currentColor.data[2])}`            
-    rgb.value = `rgb(${currentColor.data[0]}, ${currentColor.data[1]}, ${currentColor.data[2]})`;
+// display color values on the page
+rgb.value = `rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`
+hex.value = fullColorHex(currentColor[0], currentColor[1], currentColor[2])
 
-    function isInPath(x, y) { // check if mouse is on the picker (circle)
-        x -= startPos.x;
-        y -= startPos.y;
-        if((x > 0 && x < 16) && (y > 6 && y < 22)){
-            return true;
+result[0].style = `fill: rgb(${sideColor[0]}, ${sideColor[1]}, ${sideColor[2]})`
+result[1].style = `fill: rgb(${sideColor[0]}, ${sideColor[1]}, ${sideColor[2]})`
+result[2].style = `fill: rgb(${sideColor[0]}, ${sideColor[1]}, ${sideColor[2]})`
+
+// check if mouse is on switch
+function isMouseOnSwitch(layerX, layerY, switchPosX, switchPosY, switchSizeX, switchSizeY) {
+    if (layerX > switchPosX && layerX < switchPosX + switchSizeX && layerY > switchPosY && layerY < switchPosY + switchSizeY) {
+        return true
+    } else false
+}
+
+// draw function for the main switch
+function draw() {
+    layer2_ctx.beginPath();
+    layer2_ctx.arc(140, 140, 8, 0, 2 * Math.PI);
+    layer2_ctx.fillStyle = `rgb(${currentColor[0]},${currentColor[1]},${currentColor[2]})`
+    layer2_ctx.fill();
+    if (currentColor[1] > 180) layer2_ctx.strokeStyle = '#000';
+    else layer2_ctx.strokeStyle = '#fff';
+    layer2_ctx.stroke();
+}
+
+draw()
+
+// clear function for the main switch
+function clear() {
+    layer2_ctx.save();
+    layer2_ctx.setTransform(1, 0, 0, 1, 0, 0);
+    layer2_ctx.clearRect(0, 0, layer2.width, layer2.height);
+    layer2_ctx.restore();
+}
+
+layer2.addEventListener('mousedown', e => {
+    if (isMouseOnSwitch(e.layerX, e.layerY, mainSwitchPos.x + 5, mainSwitchPos.y + 5, 18, 18)) {
+        dragStart = {
+            x: e.layerX,
+            y: e.layerY
         }
-        return false;
-  }
+        drag = true;
+    }
+});
 
-    // draw function for picker (circle)
-    function draw() {
-        ctx2.beginPath();
-        ctx2.arc(100, 100, 8, 0, 2 * Math.PI);
-        ctx2.fillStyle = `rgb(${currentColor.data[0]}, ${currentColor.data[1]}, ${currentColor.data[2]})`;
-        ctx2.fill();
-        ctx2.strokeStyle = '#fff';
-        ctx2.stroke();
+layer2.addEventListener('mousemove', e => {
+
+    if (isMouseOnSwitch(e.layerX, e.layerY, mainSwitchPos.x +5, mainSwitchPos.y + 5, 18, 18)) {
+        layer2.style.cursor = 'pointer'
+    } else layer2.style.cursor = 'default'
+
+    if (drag) {
+        dragEnd = {
+            x: e.layerX,
+            y: e.layerY
+        };
+
+        // set translate to 0 if switch is on max top/bottom/left/right (block switch to move out of range)
+        mainY = ((mainSwitchPos.y < 2 && dragEnd.y - dragStart.y < 0) || (mainSwitchPos.y > 248 && dragEnd.y - dragStart.y > 0)) ? 0 : dragEnd.y - dragStart.y
+        mainX = ((mainSwitchPos.x < 2 && dragEnd.x - dragStart.x < 0) || (mainSwitchPos.x > 248 && dragEnd.x - dragStart.x > 0)) ? 0 : dragEnd.x - dragStart.x
+
+        startPos.x += mainX
+        startPos.y += mainY
+        mainSwitchPos.x = startPos.x;
+        mainSwitchPos.y = startPos.y;
+        layer2_ctx.translate(mainX, mainY);
+        currentColor = layer1_ctx.getImageData(mainSwitchPos.x, mainSwitchPos.y, 1, 1).data;
+        alpha = (currentColor[3] / 255).toFixed(2)
+        currentColor = rgbaToRgb(currentColor[0], currentColor[1], currentColor[2], alpha)
+        clear();
+        draw();
+        dragStart = dragEnd;
+
+        result[0].style = `fill: rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`
+        result[1].style = `fill: rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`
+        result[2].style = `fill: rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`
+
+        // display color values on the page
+        hex.value = fullColorHex(currentColor[0], currentColor[1], currentColor[2])
+        rgb.value = `rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`
+    }
+});
+
+layer2.addEventListener('mouseup', e => {
+    drag = false;
+    dragEnd = {
+        x: e.layerX,
+        y: e.layerY
     }
 
-    function clear() {
-        ctx2.save();
-        ctx2.setTransform(1, 0, 0, 1, 0, 0);
-        ctx2.clearRect(0, 0, layer2.width, layer2.height);
-        ctx2.restore();
-    }
-    var drag = false;
-    var dragStart;
-    var dragEnd;
+    // set translate to 0 if switch is on max top/bottom/left/right (block switch to move out of range)
+    mainY = ((mainSwitchPos.y < 2 && dragEnd.y - dragStart.y < 0) || (mainSwitchPos.y > 248 && dragEnd.y - dragStart.y > 0)) ? 0 : dragEnd.y - dragStart.y
+    mainX = ((mainSwitchPos.x < 2 && dragEnd.x - dragStart.x < 0) || (mainSwitchPos.x > 248 && dragEnd.x - dragStart.x > 0)) ? 0 : dragEnd.x - dragStart.x
+
+    startPos.x += mainX
+    startPos.y += mainY
+    mainSwitchPos.x = startPos.x;
+    mainSwitchPos.y = startPos.y;
+    layer2_ctx.translate(mainX, mainY);
+    currentColor = layer1_ctx.getImageData(mainSwitchPos.x, mainSwitchPos.y, 1, 1).data;
+    alpha = (currentColor[3] / 255).toFixed(2)
+    currentColor = rgbaToRgb(currentColor[0], currentColor[1], currentColor[2], alpha)
+    clear();
     draw();
-    if(!updateColor){
-        layer2.addEventListener('mousedown', function(event) {
-            if(isInPath(event.pageX, event.pageY)){
-                dragStart = {
-                    x: event.pageX - layer2.offsetLeft,
-                    y: event.pageY - layer2.offsetTop
-                    }
-                
-                    drag = true;
-            }
-        });
+    dragStart = dragEnd;
+    layer2.style.cursor = 'pointer';
 
-        layer2.addEventListener('mousemove', function(event) {
+    result[0].style = `fill: rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`
+    result[1].style = `fill: rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`
+    result[2].style = `fill: rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`
 
-            if(isInPath(event.pageX, event.pageY)){ // change the cursor when mouse is on picker
-                this.style.cursor='pointer';
-            } else {
-                this.style.cursor='default';
-            }
+    // display color values on the page
+    hex.value = fullColorHex(currentColor[0], currentColor[1], currentColor[2])
+    rgb.value = `rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`
+});
 
-            if (drag) {
-                dragEnd = {
-                    x: event.pageX - layer2.offsetLeft,
-                    y: event.pageY - layer2.offsetTop
-                };
-                
-                    startPos.x += (dragEnd.x - dragStart.x);
-                    startPos.y += (dragEnd.y - dragStart.y);
-                    mainPickerPos.x = startPos.x;
-                    mainPickerPos.y = startPos.y;
-                    ctx2.translate(dragEnd.x - dragStart.x, dragEnd.y - dragStart.y);
 
-                // update current color values
-                currentColor = ctx1.getImageData(startPos.x, startPos.y, 1, 1);
-                resultContext.fillStyle = `rgb(${currentColor.data[0]}, ${currentColor.data[1]}, ${currentColor.data[2]})`;
-                resultContext.fillRect(0,0, result.width, result.height);
-                hex.value = `${fullColorHex(currentColor.data[0], currentColor.data[1], currentColor.data[2])}`            
-                rgb.value = `rgb(${currentColor.data[0]}, ${currentColor.data[1]}, ${currentColor.data[2]})`;
+outer_layer2.addEventListener('mousemove', e => {
 
-                clear();
-                draw();
-                dragStart = dragEnd;
-                
-            }
+    if (isMouseOnSwitch(e.layerX, e.layerY, sideSwitchPos.x, sideSwitchPos.y, 34, 14)) outer_layer2.style.cursor = 'pointer'
+    else outer_layer2.style.cursor = 'default'
 
-        });
-        
-        layer2.addEventListener('mouseup',function(event){
-            drag = false;
+    if (sideDrag) {
+        sideDragEnd = {
+            x: e.layerX,
+            y: e.layerY
+        };
 
-            // update current color values
-            currentColor = ctx1.getImageData(startPos.x, startPos.y, 1, 1);
-            hex.value = `${fullColorHex(currentColor.data[0], currentColor.data[1], currentColor.data[2])}`            
-            rgb.value = `rgb(${currentColor.data[0]}, ${currentColor.data[1]}, ${currentColor.data[2]})`;
-        });
+        // set translate to 0 if switch is on max top/bottom (block switch to move out of range)
+        sideY = ((sideSwitchPos.y < 2 && sideDragEnd.y - sideDragStart.y < 0) || (sideSwitchPos.y > 248 && sideDragEnd.y - sideDragStart.y > 0)) ? 0 : sideDragEnd.y - sideDragStart.y
+        sideSwitchPos.y += sideY;
+
+        // move the switch (translate), clear and draw again
+        outer_layer2_ctx.translate(0, sideY);
+        outer_layer2_ctx.clearRect(0, 0, outer_layer2.width, outer_layer2.height);
+        outer_layer2_ctx.clearRect(0, 0, outer_layer2.width, -outer_layer2.height);
+        outer_layer2_ctx.beginPath()
+        outer_layer2_ctx.rect(5, 2, 30, 10)
+        outer_layer2_ctx.stroke();
+
+        sideColor = outer_layer1_ctx.getImageData(sideSwitchPos.x, sideSwitchPos.y, 1, 1).data;
+        sideDragStart = sideDragEnd;
+
+        // draw bg layers (color, black and white gradient)
+        drawColorLayer(`rgba(${sideColor[0]},${sideColor[1]},${sideColor[2]}, ${sideAlpha})`)
+        drawBlackNWhiteLayer()
+
+        // save current color value from main switch position
+        currentColor = layer1_ctx.getImageData(mainSwitchPos.x, mainSwitchPos.y, 1, 1).data;
+        alpha = (currentColor[3] / 255).toFixed(2)
+        currentColor = rgbaToRgb(currentColor[0], currentColor[1], currentColor[2], alpha)
+
+        result[0].style = `fill: rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`
+        result[1].style = `fill: rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`
+        result[2].style = `fill: rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`
+        clear();
+        draw();
+        hex.value = fullColorHex(currentColor[0], currentColor[1], currentColor[2])
+        rgb.value = `rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`
+
     }
-    updateColor = false;
-}
+})
 
-
-
-function layer1Small() { // generate "rainbow" for small canvas
-
-    const canvas = document.getElementById('layer1-small');
-    const context = canvas.getContext('2d');
-    let y = 5;
-
-    for(let x = 0; x<51; ++x){
-        context.fillStyle = `rgb(255,${y},0)`;
-        context.fillRect(x,0,1,20);
-        y += 5;
-    }
-    y = 255;
-    for(let x = 0; x<51; ++x){
-        context.fillStyle = `rgb(${y},255,0)`;
-        context.fillRect(x + 51,0,1,20);
-        y -= 5;
-    }
-    y=5;
-
-    for(let x = 0; x<51; ++x){
-        context.fillStyle = `rgb(0,255,${y})`;
-        context.fillRect(x + 102,0,1,20);
-        y += 5;
-    }
-
-    y = 255;
-    for(let x = 0; x<51; ++x){
-        context.fillStyle = `rgb(0,${y},255)`;
-        context.fillRect(x + 153,0,1,20);
-        y -= 5;
-    }
-
-    y=5;
-
-    for(let x = 0; x<51; ++x){
-        context.fillStyle = `rgb(${y},0,255)`;
-        context.fillRect(x + 204,0,1,20);
-        y += 5;
-    }
-    y = 255;
-    for(let x = 0; x<51; ++x){
-        context.fillStyle = `rgb(255,0,${y})`;
-        context.fillRect(x + 255,0,1,20);
-        y -= 5;
-    }
-
-    
-
-}
-
-function updatePickerColor() {
-    updateColor = true;
-}
-
-function layer2Small() {
-
-    const layerUpdate = document.getElementById('layer1');
-    const ctxupdate = layerUpdate.getContext('2d');
-
-    const layer1Small = document.getElementById('layer1-small');
-    const ctx1Small = layer1Small.getContext('2d');
-
-    const layer2 = document.getElementById('layer2-small');
-    const ctx2 = layer2.getContext('2d');
-
-    const startPosSmall = {x:152, y:14};
-
-    let currentColor = ctx1Small.getImageData(startPosSmall.x, startPosSmall.y, 1, 1);
-
-
-    function isInPath(x, y) { // check if mouse is on the circle
-        x -= startPosSmall.x;
-        y -= startPosSmall.y;
-        if((x > -6 && x < 20)){
-            return true;
+outer_layer2.addEventListener('mousedown', e => {
+    if (isMouseOnSwitch(e.layerX, e.layerY, sideSwitchPos.x, sideSwitchPos.y, 34, 14)) {
+        sideDragStart = {
+            x: e.layerX,
+            y: e.layerY
         }
-        return false;
-  }
-
-    function draw() {
-        ctx2.beginPath();
-        ctx2.arc(152, 14, 13, 0, 2 * Math.PI);
-        ctx2.fillStyle = `rgb(${currentColor.data[0]}, ${currentColor.data[1]}, ${currentColor.data[2]})`;
-        ctx2.fill();
-        ctx2.strokeStyle = '#fff';
-        ctx2.stroke();
+        sideDrag = true;
     }
+});
 
-    function clear() {
-        ctx2.save();
-        ctx2.setTransform(1, 0, 0, 1, 0, 0);
-        ctx2.clearRect(0, 0, layer2.width, layer2.height);
-        ctx2.restore();
-    }
-    var drag = false;
-    var dragStart;
-    var dragEnd;
-    draw();
-    layer2.addEventListener('mousedown', function(event) {
-        if(isInPath(event.pageX, event.pageY)){
-            dragStart = {
-                x: event.pageX - layer2.offsetLeft,
-                }
-            
-             drag = true;
-        }
+outer_layer2.addEventListener('mouseup', e => {
+    sideDrag = false;
+});
 
+// copy the value of the color (rgb or hex) after mouse click
+[hex,rgb].forEach(item => {
+    item.addEventListener('mouseover', e => {
+        item.style.cursor='pointer';
     });
-
-    layer2.addEventListener('mousemove', function(event) {
-
-        if(isInPath(event.pageX, event.pageY)){ // change the cursor when mouse is on pick
-            this.style.cursor='pointer';
-        } else {
-            this.style.cursor='default';
-        }
-
-        if (drag) {
-            dragEnd = {
-                x: event.pageX - layer2.offsetLeft,
-            }
-            startPosSmall.x += (dragEnd.x - dragStart.x);
-            ctx2.translate(dragEnd.x - dragStart.x, 0);
-            clear();
-            draw();
-            dragStart = dragEnd;
-            currentColor = ctx1Small.getImageData(startPosSmall.x, startPosSmall.y, 1, 1);
-
-            color.r = currentColor.data[0];
-            color.g = currentColor.data[1];
-            color.b = currentColor.data[2];
-            
-            
-        }
-
+    item.addEventListener('mouseout', e => {
+        item.style.cursor='default';
     });
-    
-    layer2.addEventListener('mouseup',function(event){
-        if(isInPath(event.pageX, event.pageY)){
-            layer1F();
-            updatePickerColor();
-            layer2F();
-            drag = false;
-        }
+    item.addEventListener('mousedown', e => {
+        item.className += " copied";
+        let temp = item.value; 
+        item.focus();
+        item.select();
+        document.execCommand('copy');
+        item.value ='Copied!';
+        setTimeout(() => {
+            item.className = 'colors';
+            item.value = temp;
+        },500);
     });
-}
-
-window.onload = function() {
-    layer1F();
-    layer2F();
-    layer1Small();
-    layer2Small();
-    const hex = document.getElementById('hex');
-    const rgb = document.getElementById('rgb');
-    [hex,rgb].forEach(item => {
-        item.addEventListener('mouseover', function(event) {
-            this.style.cursor='pointer';
-        });
-        item.addEventListener('mouseout', function(event) {
-            this.style.cursor='default';
-        });
-        item.addEventListener('mousedown', function(event) {
-            item.className += " copied";
-            let temp = item.value; 
-            item.focus();
-            item.select();
-            document.execCommand('copy');
-            item.value ='Copied!';
-            setTimeout(() => {
-                item.className = 'colors';
-                item.value = temp;
-            },500);
-        });
-    })
-}
-    
+})
