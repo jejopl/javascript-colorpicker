@@ -18,14 +18,14 @@
     height:100px;
 }
 
-#outer-layer1{
+#side-layer1{
     position: absolute;
     top: 50px;
     left: 320px;
     border-radius: 5px;
 }
 
-#outer-layer2 {
+#side-layer2 {
     position: absolute;
     top: 45px;
     left: 315px;
