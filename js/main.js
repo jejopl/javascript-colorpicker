@@ -1,3 +1,15 @@
+function elo() {
+
+const html = `<canvas id="layer1" width="250" height="250" style="z-index: 1;"></canvas>
+<canvas id="layer2" width="280" height="280" style="z-index: 2;"></canvas>
+<canvas id="side-layer1" width="30" height="250" style="z-index: 3;"></canvas>
+<canvas id="side-layer2" width="40" height="260" style="z-index: 4;"></canvas>`
+const div = document.getElementById("popup").innerHTML = html
+
+const popup = document.getElementById("popup");
+popup.classList.toggle("show");
+
+
 const layer1 = document.getElementById("layer1")
 const layer1_ctx = layer1.getContext("2d")
 const layer2 = document.getElementById("layer2")
@@ -5,9 +17,8 @@ const layer2_ctx = layer2.getContext('2d')
 const side_layer1_ctx = document.getElementById("side-layer1").getContext("2d")
 const side_layer2 = document.getElementById("side-layer2")
 const side_layer2_ctx = side_layer2.getContext("2d")
-const result = document.getElementsByClassName('st0')
-const hex = document.getElementById('hex')
-const rgb = document.getElementById('rgb')
+
+
 
 function rgbaToRgb(r, g, b, a) {
     let rR, rG, rB
@@ -98,13 +109,11 @@ function drawBlackNWhiteLayer() {
     layer1_ctx.fillStyle = layer1_gr2
     layer1_ctx.fillRect(0, 0, layer1_ctx.canvas.width, layer1_ctx.canvas.height)
 }
-
 // draw bg layers (color, black and white gradient)
 drawColorLayer()
 drawBlackNWhiteLayer()
 
-// set current color on main and side layers
-// save current color value from main switch position
+// set current color on main and side layers || save current color value from main switch position
 function setCurrentColor() {
     currentColor = layer1_ctx.getImageData(mainSwitchPos.x, mainSwitchPos.y, 1, 1).data
     alpha = (currentColor[3] / 255).toFixed(2)
@@ -116,18 +125,6 @@ function setCurrentColor() {
     }
 }
 setCurrentColor()
-
-function setLogoColor() {
-    for (let i = 0; i < result.length; i++) result[i].style = `fill: rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`
-}
-setLogoColor()
-
-function displayColorValues() {
-    // display color values on the page
-    hex.value = fullColorHex(currentColor[0], currentColor[1], currentColor[2])
-    rgb.value = `rgb(${currentColor[0]}, ${currentColor[1]}, ${currentColor[2]})`
-}
-displayColorValues()
 
 // check if mouse is on switch
 function isMouseOnSwitch(layerX, layerY, switchPosX, switchPosY, switchSizeX, switchSizeY) {
@@ -149,7 +146,6 @@ function draw() {
     layer2_ctx.setTransform(1, 0, 0, 1, 0, 0)
     layer2_ctx.clearRect(0, 0, layer2.width, layer2.height)
     layer2_ctx.restore()
-
     //draw
     layer2_ctx.beginPath()
     layer2_ctx.arc(140, 140, 8, 0, 2 * Math.PI)
@@ -158,6 +154,7 @@ function draw() {
     if (currentColor[1] > 180) layer2_ctx.strokeStyle = '#000'
     else layer2_ctx.strokeStyle = '#fff'
     layer2_ctx.stroke()
+    dragStart = dragEnd
 }
 draw()
 
@@ -169,6 +166,7 @@ function drawSide() {
     side_layer2_ctx.beginPath()
     side_layer2_ctx.rect(5, 2, 30, 10)
     side_layer2_ctx.stroke()
+    sideDragStart = sideDragEnd
 }
 
 function setMainSwitchPos(x, y) {
@@ -203,11 +201,7 @@ layer2.addEventListener('mousemove', e => {
         setMainSwitchPos(mainX, mainY)
         layer2_ctx.translate(mainX, mainY)
         setCurrentColor()
-        draw()
-        setLogoColor()
-        displayColorValues()
-
-        dragStart = dragEnd
+        draw(dragEnd)
     }
 })
 
@@ -217,20 +211,14 @@ layer2.addEventListener('mouseup', e => {
         x: e.layerX,
         y: e.layerY
     }
-
     mainY = restrictSwitchToMoveOutRange('y')
     mainX = restrictSwitchToMoveOutRange('x')
     setMainSwitchPos(mainX, mainY)
     layer2_ctx.translate(mainX, mainY)
     setCurrentColor()
-    draw()
-    setLogoColor()
-    displayColorValues()
-
-    dragStart = dragEnd
+    draw(dragEnd)
     layer2.style.cursor = 'pointer'
 })
-
 
 side_layer2.addEventListener('mousemove', e => {
     if (isMouseOnSwitch(e.layerX, e.layerY, sideSwitchPos.x, sideSwitchPos.y, 34, 14)) side_layer2.style.cursor = 'pointer'
@@ -241,20 +229,14 @@ side_layer2.addEventListener('mousemove', e => {
             x: e.layerX,
             y: e.layerY
         }
-
         sideY = restrictSwitchToMoveOutRange('side')
         sideSwitchPos.y += sideY
-        drawSide()
+        drawSide(sideDragEnd)
         sideColor = side_layer1_ctx.getImageData(sideSwitchPos.x, sideSwitchPos.y, 1, 1).data
-
         drawColorLayer(`rgba(${sideColor[0]},${sideColor[1]},${sideColor[2]}, ${sideAlpha})`)
         drawBlackNWhiteLayer()
         setCurrentColor()
         draw()
-        setLogoColor()
-        displayColorValues()
-
-        sideDragStart = sideDragEnd
     }
 })
 
@@ -275,39 +257,14 @@ side_layer2.addEventListener('mouseup', e => {
         x: e.layerX,
         y: e.layerY
     }
-
     sideY = restrictSwitchToMoveOutRange('side')
     sideSwitchPos.y += sideY
-
-    drawSide()
-
+    drawSide(sideDragEnd)
     sideColor = side_layer1_ctx.getImageData(sideSwitchPos.x, sideSwitchPos.y, 1, 1).data
-
     drawColorLayer(`rgba(${sideColor[0]},${sideColor[1]},${sideColor[2]}, ${sideAlpha})`)
     drawBlackNWhiteLayer()
     setCurrentColor()
-    setLogoColor()
     draw()
-    displayColorValues()
-
-    sideDragStart = sideDragEnd
     side_layer2.style.cursor = 'pointer'
 })
-
-// copy the value of the color (rgb or hex) after mouse click
-const colorValues = [hex, rgb].forEach(item => {
-    item.addEventListener('mouseover', e => item.style.cursor = 'pointer')
-    item.addEventListener('mouseout', e => item.style.cursor = 'default')
-    item.addEventListener('mousedown', e => {
-        item.className += " copied"
-        let temp = item.value
-        item.focus()
-        item.select()
-        document.execCommand('copy')
-        item.value = 'Copied!'
-        setTimeout(() => {
-            item.className = 'colors'
-            item.value = temp
-        }, 500)
-    })
-})
+}
